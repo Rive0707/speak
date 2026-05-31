@@ -433,8 +433,8 @@
         function onApiKeyInput() {
             const val = document.getElementById('api-key-input').value.trim();
             const btn = document.querySelector('#api-key-input-area button');
-            btn.disabled = !val.startsWith('AIza');
-            btn.className = val.startsWith('AIza')
+            btn.disabled = val.length < 5;
+            btn.className = val.length >= 5
                 ? "bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
                 : "bg-slate-700 text-slate-500 text-xs font-bold px-3 py-2 rounded-xl cursor-not-allowed";
         }
