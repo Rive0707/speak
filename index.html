@@ -474,11 +474,13 @@
                     document.getElementById('status-dot').className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse flex-shrink-0";
                     document.getElementById('api-status-label').textContent = "Gemini AI接続OK：AI問題生成が使えます";
                 } else {
-                    throw new Error("HTTP " + res.status);
+                    const errJson = await res.json().catch(() => ({}));
+                    const msg = errJson?.error?.message || ("HTTP " + res.status);
+                    throw new Error(msg);
                 }
             } catch(e) {
                 document.getElementById('status-dot').className = "w-3 h-3 rounded-full bg-red-400 flex-shrink-0";
-                document.getElementById('api-status-label').textContent = "接続失敗 → キーを確認してください";
+                document.getElementById('api-status-label').textContent = "エラー: " + e.message;
             }
         }
 
