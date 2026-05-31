@@ -181,7 +181,7 @@
     <!-- 1000語 完全内蔵辞書データ -->
     <script>
         // APIキーはlocalStorageから取得（ファイルには保存しない）
-        let API_KEY = localStorage.getItem("openrouter_api_key") || "";
+        var API_KEY = localStorage.getItem("openrouter_api_key") || "";
 
         // PDFから完全に精製した1000単語データベース（L1〜L50まで全網羅）
         const wordDatabase = {
@@ -465,7 +465,9 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer " + API_KEY
+                        "Authorization": "Bearer " + API_KEY,
+                        "HTTP-Referer": "https://rive0707.github.io/speak/",
+                        "X-Title": "瞬間英作文"
                     },
                     body: JSON.stringify({
                         model: "google/gemma-3-12b-it:free",
@@ -600,7 +602,9 @@ Return ONLY valid JSON like: {"jp":"日本語文","en":"English sentence","words
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer " + API_KEY
+                        "Authorization": "Bearer " + API_KEY,
+                        "HTTP-Referer": "https://rive0707.github.io/speak/",
+                        "X-Title": "瞬間英作文"
                     },
                     body: JSON.stringify({
                         model: "google/gemma-3-12b-it:free",
