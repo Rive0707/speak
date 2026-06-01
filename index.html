@@ -597,13 +597,20 @@
                     : '';
 
                 const prompt = `Create a Japanese-to-English translation quiz using these English words: ${targetWords.map(t => t.w).join(', ')}.
-Rules:
-- "jp": Natural Japanese sentence (the QUESTION)
-- "en": English translation (the ANSWER) that uses at least 2 of the target words
-- "words": array of only the target words actually used in the English sentence
-- Must be a realistic, everyday situation
-- Japanese particles must be 100% natural${recentHistory}
-Return ONLY valid JSON like: {"jp":"日本語文","en":"English sentence","words":["word1","word2"]}`;
+
+STRICT RULES:
+1. "jp": A SHORT, natural Japanese sentence (10 words or less) that a real person would say in daily life
+2. "en": A SHORT English translation (10 words or less) using at least 2 of the target words
+3. "words": array of only the target words actually used in the English sentence
+4. Scene must be one of: chatting with friends, shopping, eating out, commuting, working, texting, or home life
+5. NO complex grammar, NO unusual situations, NO redundant words (e.g. never use "this morning today")
+6. Japanese must use 100% natural particles (で/に/を/は/が)
+7. English must sound like something a native speaker would actually say${recentHistory}
+
+Good example: {"jp":"今日の夕飯何食べたい？","en":"What do you want for dinner today?","words":["today"]}
+Bad example: {"jp":"友達が今日朝に宿題を終わらせるのを手伝います","en":"I will help my friend finish their homework this morning today","words":["help","today","morning"]}
+
+Return ONLY valid JSON, nothing else.`;
 
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
