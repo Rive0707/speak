@@ -51,7 +51,7 @@
                     <!-- APIキー入力欄 -->
                     <div id="api-key-input-area">
                         <div class="flex gap-2">
-                            <input id="api-key-input" type="password" placeholder="sk-or-... (OpenRouter APIキー)" 
+                            <input id="api-key-input" type="password" placeholder="gsk_... (Groq APIキー)" 
                                 class="flex-1 bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                                 oninput="onApiKeyInput()" />
                             <button onclick="saveApiKey()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all">
@@ -181,7 +181,7 @@
     <!-- 1000語 完全内蔵辞書データ -->
     <script>
         // APIキーはlocalStorageから取得（ファイルには保存しない）
-        var API_KEY = localStorage.getItem("openrouter_api_key") || "";
+        var API_KEY = localStorage.getItem("groq_api_key") || "";
 
         // PDFから完全に精製した1000単語データベース（L1〜L50まで全網羅）
         const wordDatabase = {
@@ -417,7 +417,7 @@
         });
 
         function initApiKeyUI() {
-            const saved = localStorage.getItem("openrouter_api_key");
+            const saved = localStorage.getItem("groq_api_key");
             if (saved) {
                 API_KEY = saved;
                 document.getElementById('api-key-input-area').classList.add('hidden');
@@ -441,7 +441,7 @@
         function saveApiKey() {
             const val = document.getElementById('api-key-input').value.trim();
             if (!val) return;
-            localStorage.setItem("openrouter_api_key", val);
+            localStorage.setItem("groq_api_key", val);
             API_KEY = val;
             document.getElementById('api-key-input').value = '';
             document.getElementById('api-key-input-area').classList.add('hidden');
@@ -451,7 +451,7 @@
         }
 
         function clearApiKey() {
-            localStorage.removeItem("openrouter_api_key");
+            localStorage.removeItem("groq_api_key");
             API_KEY = "";
             document.getElementById('api-key-saved-area').classList.add('hidden');
             document.getElementById('api-key-input-area').classList.remove('hidden');
@@ -460,19 +460,17 @@
         }
 
         async function testApiConnection() {
-            const key = localStorage.getItem("openrouter_api_key") || "";
+            const key = localStorage.getItem("groq_api_key") || "";
             if (!key) return;
             try {
-                const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer " + key,
-                        "HTTP-Referer": "https://rive0707.github.io/speak/",
-                        "X-Title": "Eikaiwa Quiz"
+                        "Authorization": "Bearer " + key
                     },
                     body: JSON.stringify({
-                        model: "openrouter/auto",
+                        model: "llama-3.3-70b-versatile",
                         messages: [{ role: "user", content: 'Reply with only this JSON: {"ok":true}' }],
                         max_tokens: 20
                     })
@@ -600,16 +598,14 @@ Rules:
 - Japanese particles must be 100% natural${recentHistory}
 Return ONLY valid JSON like: {"jp":"日本語文","en":"English sentence","words":["word1","word2"]}`;
 
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer " + (localStorage.getItem("openrouter_api_key") || ""),
-                        "HTTP-Referer": "https://rive0707.github.io/speak/",
-                        "X-Title": "Eikaiwa Quiz"
+                        "Authorization": "Bearer " + (localStorage.getItem("groq_api_key") || "")
                     },
                     body: JSON.stringify({
-                        model: "openrouter/auto",
+                        model: "llama-3.3-70b-versatile",
                         messages: [{ role: "user", content: prompt }],
                         max_tokens: 300,
                         temperature: 1.0
