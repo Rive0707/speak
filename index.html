@@ -470,7 +470,7 @@
                         "X-Title": "Eikaiwa Quiz"
                     },
                     body: JSON.stringify({
-                        model: "meta-llama/llama-3.2-3b-instruct:free",
+                        model: "meta-llama/llama-3.3-70b-instruct:free",
                         messages: [{ role: "user", content: 'Reply with only this JSON: {"ok":true}' }],
                         max_tokens: 20
                     })
@@ -607,7 +607,7 @@ Return ONLY valid JSON like: {"jp":"日本語文","en":"English sentence","words
                         "X-Title": "Eikaiwa Quiz"
                     },
                     body: JSON.stringify({
-                        model: "meta-llama/llama-3.2-3b-instruct:free",
+                        model: "meta-llama/llama-3.3-70b-instruct:free",
                         messages: [{ role: "user", content: prompt }],
                         max_tokens: 300,
                         temperature: 1.0
