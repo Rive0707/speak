@@ -417,6 +417,13 @@
         });
 
         function initApiKeyUI() {
+            // 古いキー名をすべてgroq_api_keyに統一して移行
+            const oldKeys = ["gemini_api_key", "openrouter_api_key"];
+            oldKeys.forEach(function(k) {
+                const v = localStorage.getItem(k);
+                if (v) { localStorage.setItem("groq_api_key", v); localStorage.removeItem(k); }
+            });
+
             const saved = localStorage.getItem("groq_api_key");
             if (saved) {
                 API_KEY = saved;
