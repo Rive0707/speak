@@ -620,9 +620,33 @@ Return ONLY valid JSON, nothing else.`;
                     },
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
-                        messages: [{ role: "user", content: prompt }],
-                        max_tokens: 300,
-                        temperature: 1.0
+                        messages: [
+                            {
+                                role: "system",
+                                content: `You are a Japanese-English translation quiz maker. Your job is to create simple, natural everyday sentences.
+
+RULES YOU MUST FOLLOW:
+- The Japanese sentence must be something a real Japanese person would actually say in daily life
+- The English sentence must be a direct, natural translation - NOT a creative rewrite
+- Both sentences must mean exactly the same thing
+- Keep sentences SHORT (under 10 words each)
+- NEVER add words or meaning that aren't in the original
+- NEVER make philosophical or abstract sentences
+- Output ONLY a JSON object, no explanation
+
+GOOD pairs:
+jp:"コーヒー飲む？" en:"Want some coffee?"
+jp:"今日疲れた" en:"I'm tired today"
+jp:"駅まで歩いた" en:"I walked to the station"
+
+BAD pairs (NEVER do this):
+jp:"簡単なことです" en:"That's an easy thing, what is it?" ← English adds meaning not in Japanese
+jp:"友達が宿題を手伝います" en:"I will help my friend finish their homework this morning today" ← redundant words`
+                            },
+                            { role: "user", content: prompt }
+                        ],
+                        max_tokens: 200,
+                        temperature: 0.7
                     })
                 });
 
