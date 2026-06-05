@@ -596,19 +596,12 @@
                     ? `\nRECENTLY USED (avoid similar): ${recentJpSentences.map(s => `"${s}"`).join(' / ')}`
                     : '';
 
-                const prompt = `Create a Japanese-to-English translation quiz using these English words: ${targetWords.map(t => t.w).join(', ')}.
+                const prompt = `Target words: ${targetWords.map(t => `${t.w} (${t.j})`).join(', ')}
 
-STEP 1: Create a short, natural English sentence (under 10 words) for daily life that uses at least 2 of the target words.
-STEP 2: Translate that English sentence accurately into natural Japanese.
-STEP 3: Return the result as JSON.
+Create a natural daily conversation sentence using at least 2 of these words.
+Follow all the rules in your instructions.${recentHistory}
 
-The "jp" field is the QUESTION shown to the user.
-The "en" field is the ANSWER the user must translate to.
-The Japanese MUST be an accurate translation of the English - not a different sentence.${recentHistory}
-
-Return ONLY this JSON format:
-{"jp":"正確な日本語訳","en":"Your English sentence","words":["word1","word2"]}`;
-
+Return ONLY JSON: {"jp":"日本語","en":"English","words":["used","words"]}`;
 
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
@@ -621,25 +614,35 @@ Return ONLY this JSON format:
                         messages: [
                             {
                                 role: "system",
-                                content: `You are a Japanese-English translation quiz maker. Your job is to create simple, natural everyday sentences.
+                                content: `You are a Japanese-English daily conversation quiz maker. You create simple, realistic sentences that native English speakers actually say.
 
-RULES YOU MUST FOLLOW:
-- The Japanese sentence must be something a real Japanese person would actually say in daily life
-- The English sentence must be a direct, natural translation - NOT a creative rewrite
-- Both sentences must mean exactly the same thing
-- Keep sentences SHORT (under 10 words each)
-- NEVER add words or meaning that aren't in the original
-- NEVER make philosophical or abstract sentences
-- Output ONLY a JSON object, no explanation
+## YOUR TASK
+Given some English target words, create ONE natural English sentence using at least 2 of them, then translate it accurately to Japanese.
 
-GOOD pairs:
-jp:"コーヒー飲む？" en:"Want some coffee?"
-jp:"今日疲れた" en:"I'm tired today"
-jp:"駅まで歩いた" en:"I walked to the station"
+## STRICT REQUIREMENTS
+1. The English sentence MUST describe a realistic, common daily situation
+2. The Japanese MUST be a 100% accurate translation of the English (same meaning, same subject)
+3. Both sentences must be SHORT (under 10 words)
+4. NEVER force unnatural combinations - if words don't fit together naturally, use only the ones that do
+5. NEVER create sentences about body parts being on furniture, objects doing human actions, or any strange/surreal scenario
+6. The subject must be a person (I, you, he, she, we, they) doing something realistic
 
-BAD pairs (NEVER do this):
-jp:"簡単なことです" en:"That's an easy thing, what is it?" ← English adds meaning not in Japanese
-jp:"友達が宿題を手伝います" en:"I will help my friend finish their homework this morning today" ← redundant words`
+## NATURAL DAILY TOPICS (use these)
+- Food & drinks: "I had coffee this morning"
+- Shopping: "She bought a new bag"  
+- Work/study: "He reads books at school"
+- Transportation: "I walk to the station"
+- Home: "We eat dinner together"
+- Friends: "Can you help me today?"
+
+## FORBIDDEN (never generate these)
+- Body parts on objects: "My eye is on the table" ← FORBIDDEN
+- Objects doing actions: "The door is running" ← FORBIDDEN  
+- Unnatural possession: "I know one person" for 「知らない人がいる」← FORBIDDEN
+- Redundant words: "this morning today" ← FORBIDDEN
+
+## OUTPUT FORMAT
+Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words":["word1","word2"]}`
                             },
                             { role: "user", content: prompt }
                         ],
