@@ -623,9 +623,12 @@
                     ? `\nRECENTLY USED (avoid similar): ${recentJpSentences.map(s => `"${s}"`).join(' / ')}`
                     : '';
 
-                const prompt = `Hint words (use naturally if they fit, otherwise ignore): ${targetWords.map(t => `${t.w}(${t.j})`).join(', ')}${recentHistory}
+                // 1単語だけ選ぶ（複数の組み合わせで不自然になるのを防ぐ）
+                const singleWord = targetWords[Math.floor(Math.random() * targetWords.length)];
+                const prompt = `Create a natural Japanese-English daily conversation quiz using the English word "${singleWord.w}" (${singleWord.j}).
 
-Create a natural daily conversation quiz. Return ONLY JSON.`;
+Make a sentence where "${singleWord.w}" is used naturally in an everyday situation.${recentHistory}
+Return ONLY JSON: {"jp":"自然な日本語","en":"Natural English using '${singleWord.w}'","words":["${singleWord.w}"]}`;
 
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
