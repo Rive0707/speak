@@ -596,12 +596,9 @@
                     ? `\nRECENTLY USED (avoid similar): ${recentJpSentences.map(s => `"${s}"`).join(' / ')}`
                     : '';
 
-                const prompt = `Target words: ${targetWords.map(t => `${t.w} (${t.j})`).join(', ')}
+                const prompt = `Hint words (use naturally if they fit, otherwise ignore): ${targetWords.map(t => `${t.w}(${t.j})`).join(', ')}${recentHistory}
 
-Create a natural daily conversation sentence using at least 2 of these words.
-Follow all the rules in your instructions.${recentHistory}
-
-Return ONLY JSON: {"jp":"日本語","en":"English","words":["used","words"]}`;
+Create a natural daily conversation quiz. Return ONLY JSON.`;
 
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
@@ -614,35 +611,39 @@ Return ONLY JSON: {"jp":"日本語","en":"English","words":["used","words"]}`;
                         messages: [
                             {
                                 role: "system",
-                                content: `You are a Japanese-English daily conversation quiz maker. You create simple, realistic sentences that native English speakers actually say.
+                                content: `You are a Japanese-English daily conversation quiz maker for Japanese learners.
 
 ## YOUR TASK
-Given some English target words, create ONE natural English sentence using at least 2 of them, then translate it accurately to Japanese.
+Create ONE quiz question based on a realistic daily life scene. The scene must feel like something from a TV drama, movie, or real conversation.
 
-## STRICT REQUIREMENTS
-1. The English sentence MUST describe a realistic, common daily situation
-2. The Japanese MUST be a 100% accurate translation of the English (same meaning, same subject)
-3. Both sentences must be SHORT (under 10 words)
-4. NEVER force unnatural combinations - if words don't fit together naturally, use only the ones that do
-5. NEVER create sentences about body parts being on furniture, objects doing human actions, or any strange/surreal scenario
-6. The subject must be a person (I, you, he, she, we, they) doing something realistic
+## SCENE IDEAS (pick one randomly)
+- Morning routine: waking up, breakfast, getting ready
+- Commute: train, bus, walking, traffic
+- Work/school: meetings, studying, lunch break
+- Shopping: convenience store, supermarket, online shopping
+- Eating out: ordering, paying, recommending food
+- Friends/family: chatting, making plans, small talk
+- Home: cooking, cleaning, watching TV, relaxing
+- Weather/seasons: hot, cold, rainy day comments
+- Feelings: tired, happy, surprised, worried
+- Phone/texting: messages, calls, social media
 
-## NATURAL DAILY TOPICS (use these)
-- Food & drinks: "I had coffee this morning"
-- Shopping: "She bought a new bag"  
-- Work/study: "He reads books at school"
-- Transportation: "I walk to the station"
-- Home: "We eat dinner together"
-- Friends: "Can you help me today?"
+## RULES
+1. Write a SHORT natural English sentence first (5-10 words) that fits the scene
+2. Translate it accurately to Japanese
+3. Try to include 1-2 of the provided hint words if they fit naturally - if they don't fit, IGNORE them
+4. NEVER force unnatural combinations
+5. English must sound like something from a Netflix show or real conversation
+6. Japanese must be natural spoken Japanese (not textbook Japanese)
 
-## FORBIDDEN (never generate these)
-- Body parts on objects: "My eye is on the table" ← FORBIDDEN
-- Objects doing actions: "The door is running" ← FORBIDDEN  
-- Unnatural possession: "I know one person" for 「知らない人がいる」← FORBIDDEN
-- Redundant words: "this morning today" ← FORBIDDEN
+## GOOD EXAMPLES
+{"jp":"今日めっちゃ疲れた","en":"I'm so tired today","words":["today"]}
+{"jp":"コーヒーもう一杯飲む？","en":"Want another cup of coffee?","words":["coffee"]}
+{"jp":"駅まで一緒に歩こう","en":"Let's walk to the station together","words":["walk"]}
+{"jp":"昨日友達とご飯食べた","en":"I had dinner with my friend yesterday","words":["dinner","friend"]}
 
-## OUTPUT FORMAT
-Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words":["word1","word2"]}`
+## OUTPUT
+Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words":["words","used"]}`
                             },
                             { role: "user", content: prompt }
                         ],
