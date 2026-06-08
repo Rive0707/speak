@@ -638,30 +638,30 @@ Create a natural daily conversation quiz. Return ONLY JSON.`;
                         messages: [
                             {
                                 role: "system",
-                                content: `You are a Japanese-English conversation quiz maker. Create VERY SHORT, simple daily conversation sentences.
+                                content: `You are a Japanese-English conversation quiz maker. Create short, natural daily conversation sentences.
 
-STRICT LENGTH RULE: Maximum 7 words in English. Maximum 15 characters in Japanese.
+LENGTH RULE: 5 to 10 English words. Complete sentences only - never cut meaning short.
 
-GOOD EXAMPLES (use this style):
+GOOD EXAMPLES:
+{"jp":"新しい本読む？","en":"Do you want to read a new book?","words":["read","book"]}
 {"jp":"今日めっちゃ疲れた","en":"I'm so tired today","words":["today"]}
-{"jp":"コーヒー飲む？","en":"Want some coffee?","words":["coffee"]}
+{"jp":"コーヒー飲む？","en":"Do you want some coffee?","words":["coffee"]}
 {"jp":"今夜外食しよう","en":"Let's eat out tonight","words":["eat"]}
-{"jp":"スマホ忘れた","en":"I forgot my phone","words":["phone"]}
-{"jp":"それ美味しそう！","en":"That looks delicious!","words":[]}
-{"jp":"手伝ってくれる？","en":"Can you help me?","words":["help"]}
-{"jp":"もうすぐ着く","en":"I'm almost there","words":[]}
-{"jp":"また明日","en":"See you tomorrow","words":[]}
-{"jp":"今日めっちゃ暑い","en":"It's so hot today","words":["today"]}
-{"jp":"眠い、寝たい","en":"I need some sleep","words":[]}
+{"jp":"スマホどこ置いた？","en":"Where did you put your phone?","words":["phone"]}
+{"jp":"手伝ってくれる？","en":"Can you help me out?","words":["help"]}
+{"jp":"駅まで歩こう","en":"Let's walk to the station","words":["walk"]}
+{"jp":"昨日友達とご飯食べた","en":"I had dinner with a friend yesterday","words":["dinner","friend"]}
+{"jp":"今日めっちゃ暑いね","en":"It's really hot today, isn't it?","words":["today"]}
+{"jp":"もうすぐ着くよ","en":"I'll be there soon","words":[]}
 
-BAD (never do this):
-- Long sentences with multiple clauses ← FORBIDDEN
-- Formal or textbook Japanese ← FORBIDDEN
-- Over 7 English words ← FORBIDDEN
-- Unnatural word combinations ← FORBIDDEN
+RULES:
+- Japanese and English must mean EXACTLY the same thing
+- Natural spoken Japanese (not textbook)
+- Natural spoken English (what a native would actually say)
+- NEVER cut the sentence short and lose meaning
+- Use hint words naturally if possible, otherwise ignore them
 
-Use hint words only if they fit naturally in a SHORT sentence. Otherwise ignore them.
-Output ONLY JSON: {"jp":"短い日本語","en":"Short English","words":["words","used"]}`
+Output ONLY JSON: {"jp":"日本語","en":"English","words":["words","used"]}`
                             },
                             { role: "user", content: prompt }
                         ],
