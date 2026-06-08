@@ -163,8 +163,31 @@
                                     <!-- 単語カードがJSで挿入されます -->
                                 </div>
                             </div>
+
+                            <!-- 自己評価ボタン -->
+                            <div id="self-eval-area" class="hidden mt-6">
+                                <p class="text-[11px] text-slate-400 text-center mb-3 font-bold">自分で英語が言えましたか？</p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="recordResult(true)" class="bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-400 font-black py-4 rounded-2xl text-lg active:scale-95 transition-all">
+                                        ✅ できた
+                                    </button>
+                                    <button onclick="recordResult(false)" class="bg-red-600/20 hover:bg-red-600/40 border border-red-500/40 text-red-400 font-black py-4 rounded-2xl text-lg active:scale-95 transition-all">
+                                        ❌ できなかった
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- セッションスコア表示 -->
+            <div id="session-score-bar" class="mx-0 mb-3 bg-slate-800/60 rounded-2xl px-4 py-2 flex items-center justify-between hidden">
+                <span class="text-[11px] text-slate-400">今回のセッション</span>
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-emerald-400 font-bold">✅ <span id="score-correct">0</span></span>
+                    <span class="text-[11px] text-red-400 font-bold">❌ <span id="score-wrong">0</span></span>
+                    <span class="text-[11px] text-blue-400 font-bold" id="score-rate">-</span>
                 </div>
             </div>
 
@@ -414,6 +437,7 @@
         window.addEventListener('DOMContentLoaded', function() {
             renderLessonSelector();
             initApiKeyUI();
+            renderProgressDashboard();
         });
 
         function initApiKeyUI() {
@@ -556,8 +580,11 @@
         function quitTraining() {
             clearInterval(timerInterval);
             window.speechSynthesis.cancel();
+            sessionCorrect = 0;
+            sessionWrong = 0;
             document.getElementById('screen-play').classList.add('hidden');
             document.getElementById('screen-dashboard').classList.remove('hidden');
+            renderProgressDashboard();
         }
 
         function pickRandomRequiredWords() {
@@ -611,39 +638,30 @@ Create a natural daily conversation quiz. Return ONLY JSON.`;
                         messages: [
                             {
                                 role: "system",
-                                content: `You are a Japanese-English daily conversation quiz maker for Japanese learners.
+                                content: `You are a Japanese-English conversation quiz maker. Create VERY SHORT, simple daily conversation sentences.
 
-## YOUR TASK
-Create ONE quiz question based on a realistic daily life scene. The scene must feel like something from a TV drama, movie, or real conversation.
+STRICT LENGTH RULE: Maximum 7 words in English. Maximum 15 characters in Japanese.
 
-## SCENE IDEAS (pick one randomly)
-- Morning routine: waking up, breakfast, getting ready
-- Commute: train, bus, walking, traffic
-- Work/school: meetings, studying, lunch break
-- Shopping: convenience store, supermarket, online shopping
-- Eating out: ordering, paying, recommending food
-- Friends/family: chatting, making plans, small talk
-- Home: cooking, cleaning, watching TV, relaxing
-- Weather/seasons: hot, cold, rainy day comments
-- Feelings: tired, happy, surprised, worried
-- Phone/texting: messages, calls, social media
-
-## RULES
-1. Write a SHORT natural English sentence first (5-10 words) that fits the scene
-2. Translate it accurately to Japanese
-3. Try to include 1-2 of the provided hint words if they fit naturally - if they don't fit, IGNORE them
-4. NEVER force unnatural combinations
-5. English must sound like something from a Netflix show or real conversation
-6. Japanese must be natural spoken Japanese (not textbook Japanese)
-
-## GOOD EXAMPLES
+GOOD EXAMPLES (use this style):
 {"jp":"今日めっちゃ疲れた","en":"I'm so tired today","words":["today"]}
-{"jp":"コーヒーもう一杯飲む？","en":"Want another cup of coffee?","words":["coffee"]}
-{"jp":"駅まで一緒に歩こう","en":"Let's walk to the station together","words":["walk"]}
-{"jp":"昨日友達とご飯食べた","en":"I had dinner with my friend yesterday","words":["dinner","friend"]}
+{"jp":"コーヒー飲む？","en":"Want some coffee?","words":["coffee"]}
+{"jp":"今夜外食しよう","en":"Let's eat out tonight","words":["eat"]}
+{"jp":"スマホ忘れた","en":"I forgot my phone","words":["phone"]}
+{"jp":"それ美味しそう！","en":"That looks delicious!","words":[]}
+{"jp":"手伝ってくれる？","en":"Can you help me?","words":["help"]}
+{"jp":"もうすぐ着く","en":"I'm almost there","words":[]}
+{"jp":"また明日","en":"See you tomorrow","words":[]}
+{"jp":"今日めっちゃ暑い","en":"It's so hot today","words":["today"]}
+{"jp":"眠い、寝たい","en":"I need some sleep","words":[]}
 
-## OUTPUT
-Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words":["words","used"]}`
+BAD (never do this):
+- Long sentences with multiple clauses ← FORBIDDEN
+- Formal or textbook Japanese ← FORBIDDEN
+- Over 7 English words ← FORBIDDEN
+- Unnatural word combinations ← FORBIDDEN
+
+Use hint words only if they fit naturally in a SHORT sentence. Otherwise ignore them.
+Output ONLY JSON: {"jp":"短い日本語","en":"Short English","words":["words","used"]}`
                             },
                             { role: "user", content: prompt }
                         ],
@@ -740,6 +758,8 @@ Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words
             document.getElementById('play-loading').classList.add('hidden');
             document.getElementById('play-content').classList.remove('hidden');
             document.getElementById('answer-box').classList.add('hidden', 'opacity-0', 'translate-y-4');
+            document.getElementById('self-eval-area').classList.add('hidden');
+            document.getElementById('session-score-bar').classList.remove('hidden');
 
             playState = "QUESTION";
             btn.disabled = false;
@@ -762,12 +782,59 @@ Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words
                     answerBox.classList.remove('opacity-0', 'translate-y-4');
                 }, 50);
 
+                // 自己評価ボタンを表示、次へボタンを非表示
+                document.getElementById('self-eval-area').classList.remove('hidden');
+                btn.classList.add('hidden');
+
                 playTTS();
 
-                btn.textContent = "次の問題へ";
-                btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-emerald-900/30 transition-all cursor-pointer";
             } else if (playState === "ANSWER") {
                 nextQuestion();
+            }
+        }
+
+        // スコア管理
+        let sessionCorrect = 0;
+        let sessionWrong = 0;
+
+        function recordResult(correct) {
+            if (correct) {
+                sessionCorrect++;
+            } else {
+                sessionWrong++;
+            }
+
+            // localStorageに累計記録
+            const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+            history.push({
+                date: new Date().toISOString(),
+                jp: currentQuizData.jp,
+                en: currentQuizData.en,
+                correct: correct
+            });
+            // 最新500件だけ保持
+            if (history.length > 500) history.splice(0, history.length - 500);
+            localStorage.setItem('quiz_history', JSON.stringify(history));
+
+            // スコアバー更新
+            updateScoreBar();
+
+            // 自己評価ボタンを非表示にして次へボタンを表示
+            document.getElementById('self-eval-area').classList.add('hidden');
+            const btn = document.getElementById('main-action-btn');
+            btn.classList.remove('hidden');
+            btn.textContent = "次の問題へ";
+            btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-emerald-900/30 transition-all cursor-pointer";
+            playState = "ANSWER";
+        }
+
+        function updateScoreBar() {
+            document.getElementById('score-correct').textContent = sessionCorrect;
+            document.getElementById('score-wrong').textContent = sessionWrong;
+            const total = sessionCorrect + sessionWrong;
+            if (total > 0) {
+                const rate = Math.round((sessionCorrect / total) * 100);
+                document.getElementById('score-rate').textContent = rate + '%';
             }
         }
 
@@ -779,8 +846,59 @@ Return ONLY valid JSON: {"jp":"自然な日本語","en":"Natural English","words
             utterance.rate = 0.95;
             window.speechSynthesis.speak(utterance);
         }
+
+        // 進捗ダッシュボードをダッシュボード画面に表示
+        function renderProgressDashboard() {
+            const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+            if (history.length === 0) return;
+
+            const total = history.length;
+            const correct = history.filter(h => h.correct).length;
+            const rate = Math.round((correct / total) * 100);
+
+            // 既存があれば削除
+            const existing = document.getElementById('progress-dashboard');
+            if (existing) existing.remove();
+
+            // レベル判定
+            let level, levelColor, levelBg;
+            if (rate >= 80) { level = "🏆 上級者"; levelColor = "text-yellow-400"; levelBg = "bg-yellow-500/10 border-yellow-500/20"; }
+            else if (rate >= 60) { level = "📈 中級者"; levelColor = "text-blue-400"; levelBg = "bg-blue-500/10 border-blue-500/20"; }
+            else if (rate >= 40) { level = "📚 初中級者"; levelColor = "text-emerald-400"; levelBg = "bg-emerald-500/10 border-emerald-500/20"; }
+            else { level = "🌱 初級者"; levelColor = "text-slate-400"; levelBg = "bg-slate-500/10 border-slate-500/20"; }
+
+            const dash = document.createElement('div');
+            dash.id = 'progress-dashboard';
+            dash.className = `${levelBg} border rounded-2xl p-4 mb-4`;
+            dash.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-slate-300">📊 学習進捗</span>
+                    <span class="text-[10px] text-slate-500">${total}問回答済み</span>
+                </div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-2xl font-black ${levelColor}">${rate}%</span>
+                    <div>
+                        <p class="text-xs font-bold text-white">${level}</p>
+                        <p class="text-[10px] text-slate-400">正解 ${correct} / ${total} 問</p>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-500 ${rate >= 60 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : 'bg-amber-500'}" style="width:${rate}%"></div>
+                </div>
+                <button onclick="clearHistory()" class="mt-2 text-[10px] text-slate-600 hover:text-red-400 transition-colors">履歴をリセット</button>
+            `;
+
+            const apiCard = document.getElementById('api-status-card');
+            apiCard.parentNode.insertBefore(dash, apiCard);
+        }
+
+        function clearHistory() {
+            if (confirm('学習履歴をすべて削除しますか？')) {
+                localStorage.removeItem('quiz_history');
+                const existing = document.getElementById('progress-dashboard');
+                if (existing) existing.remove();
+            }
+        }
     </script>
 </body>
 </html>
-
-```
