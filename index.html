@@ -625,10 +625,23 @@
 
                 // 1単語だけ選ぶ（複数の組み合わせで不自然になるのを防ぐ）
                 const singleWord = targetWords[Math.floor(Math.random() * targetWords.length)];
+
+                // 選択レッスンの全単語リストを作成してAIに渡す
+                let allLevelWords = [];
+                selectedLessons.forEach(function(l) {
+                    if (wordDatabase[l]) allLevelWords = allLevelWords.concat(wordDatabase[l].map(o => o.w));
+                });
+                // 基本的な機能語は常に許可
+                const basicWords = ["I","you","he","she","we","they","it","a","an","the","is","am","are","was","were","do","does","did","have","has","had","will","would","can","could","should","may","might","to","of","in","on","at","for","with","and","but","or","so","not","no","this","that","my","your","his","her","our","their","its","be","been","being","go","get","come","know","see","want","need","like","look","good","really","so","very","too","also","just","here","there","now","today","then","up","out","about","some","one","more","what","how","when","where","who","let","make","take","give","say","tell","think","feel"];
+                const allowedWords = [...new Set([...allLevelWords, ...basicWords])];
+
                 const prompt = `Create a natural Japanese-English daily conversation quiz using the English word "${singleWord.w}" (${singleWord.j}).
 
-Make a sentence where "${singleWord.w}" is used naturally in an everyday situation.${recentHistory}
-Return ONLY JSON: {"jp":"自然な日本語","en":"Natural English using '${singleWord.w}'","words":["${singleWord.w}"]}`;
+VOCABULARY RULE: Only use words from this allowed list (plus articles/prepositions): ${allowedWords.join(', ')}
+Do NOT use words outside this list. If you need a word not in the list, simplify the sentence.
+
+Make a short natural sentence (5-10 words) where "${singleWord.w}" is used in an everyday situation.${recentHistory}
+Return ONLY JSON: {"jp":"自然な日本語","en":"Natural English","words":["${singleWord.w}"]}`;
 
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
